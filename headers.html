@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Files - Testing Monitor</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="compilers.html">Testing Monitor</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="compilers.html"><i class="fas fa-code me-1"></i>Compilers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tests.html"><i class="fas fa-vial me-1"></i>Tests</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="headers.html"><i class="fas fa-file-code me-1"></i>Headers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tasks.html"><i class="fas fa-tasks me-1"></i>Tasks</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <span id="loginStatus" class="navbar-text me-3 text-white"></span>
+                    <button id="logoutBtn" class="btn btn-sm btn-light">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main container -->
+    <div class="container mt-4">
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="btn-group" role="group">
+                    <a href="header-create.html" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i>Create New Header
+                    </a>
+                    <button class="btn btn-success" onclick="headersPage.showUploadModal()">
+                        <i class="fas fa-upload me-2"></i>Upload Header File
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Header Files</h6>
+                        <button class="btn btn-sm btn-light" onclick="headersPage.loadHeaders()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body" id="headersList">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">Upload Header File</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadHeaderForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">File</label>
+                            <input type="file" class="form-control" name="file" accept=".h,.hpp,.txt" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="fas fa-upload me-2"></i>Upload
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/pages/headers.js"></script>
+    <script src="js/components/loading-overlay.js"></script>
+</body>
+</html>

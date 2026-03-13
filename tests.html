@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tests - Testing Monitor</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="compilers.html">Testing Monitor</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="compilers.html"><i class="fas fa-code me-1"></i>Compilers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="tests.html"><i class="fas fa-vial me-1"></i>Tests</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="headers.html"><i class="fas fa-file-code me-1"></i>Headers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tasks.html"><i class="fas fa-tasks me-1"></i>Tasks</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <span id="loginStatus" class="navbar-text me-3 text-white"></span>
+                    <button id="logoutBtn" class="btn btn-sm btn-light">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main container -->
+    <div class="container mt-4">
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="btn-group" role="group">
+                    <a href="test-create.html" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i>Create New Test
+                    </a>
+                    <button class="btn btn-success" onclick="testsPage.showUploadModal()">
+                        <i class="fas fa-upload me-2"></i>Upload Test File
+                    </button>
+                    <button class="btn btn-info" onclick="testsPage.showGroupUploadModal()">
+                        <i class="fas fa-folder-upload me-2"></i>Upload Test Group
+                    </button>
+                    <button class="btn btn-warning" onclick="testsPage.showCreateGroupModal()">
+                        <i class="fas fa-folder-plus me-2"></i>New Group
+                    </button>
+                    <a href="test-execute.html" class="btn btn-danger">
+                        <i class="fas fa-play me-2"></i>Execute Tests
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="fas fa-folder-open me-2"></i>Tests & Groups</h6>
+                        <div>
+                            <span id="currentFolder" class="me-3 text-white"></span>
+                            <button class="btn btn-sm btn-light" onclick="testsPage.refreshCurrentFolder()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Breadcrumb navigation -->
+                        <nav aria-label="breadcrumb" class="mb-3" id="breadcrumbNav"></nav>
+                        
+                        <!-- Tests and groups list -->
+                        <div id="testsList">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Test Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">Upload Test File</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadTestForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">File</label>
+                            <input type="file" class="form-control" name="file" accept=".txt,.cs,.cpp,.c" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="fas fa-upload me-2"></i>Upload
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Test Group Modal -->
+    <div class="modal fade" id="groupUploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Upload Test Group</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="uploadGroupForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Group ID</label>
+                            <input type="text" class="form-control" id="groupUploadId" placeholder="Leave empty for current folder">
+                            <small class="text-muted">If empty, uploads to current folder</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">File</label>
+                            <input type="file" class="form-control" name="file" accept=".zip,.tar,.gz,.tgz" required>
+                            <small class="text-muted">Upload a compressed file containing test group structure</small>
+                        </div>
+                        <button type="submit" class="btn btn-info w-100">
+                            <i class="fas fa-upload me-2"></i>Upload Group
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div class="modal fade" id="createGroupModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Create New Group</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createGroupForm">
+                        <div class="mb-3">
+                            <label class="form-label">Group Name</label>
+                            <input type="text" class="form-control" id="groupName" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-save me-2"></i>Create Group
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+    <!-- Debug - Check URL immediately -->
+    <script>
+        // Debug URL parameters - run immediately
+        (function() {
+            console.log('%c🔍🔍🔍 IMMEDIATE DEBUG: Checking URL parameters', 'color: blue; font-weight: bold');
+            const urlParams = new URLSearchParams(window.location.search);
+            const folderId = urlParams.get('folder');
+            console.log('%c🔍🔍🔍 IMMEDIATE DEBUG: folder parameter =', 'color: blue;', folderId);
+            
+            if (folderId) {
+                console.log('%c🔍🔍🔍 IMMEDIATE DEBUG: Will navigate to folder:', 'color: blue;', folderId);
+                // Store in a global for later use
+                window.__initialFolder = folderId;
+            }
+        })();
+    </script>
+
+    <!-- Scripts - Load in correct order -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <!-- Shared test modules -->
+    <script src="js/pages/tests/tests-common.js"></script>
+    <script src="js/pages/tests/tests-navigation.js"></script>
+    <script src="js/pages/tests/tests-header-assignment.js"></script>
+    <script src="js/pages/tests/tests-modals.js"></script>
+    <script src="js/pages/tests/tests-crud.js"></script>
+    
+    <!-- Main tests page -->
+    <script src="js/pages/tests.js"></script>
+
+    <!-- Loading Overlay -->
+    <script src="js/components/loading-overlay.js"></script>
+
+    <!-- Final check after all scripts are loaded -->
+    <script>
+        // Check again after all scripts are loaded
+        setTimeout(function() {
+            console.log('%c🔍🔍🔍 FINAL CHECK: URL parameters after scripts loaded', 'color: green; font-weight: bold');
+            const urlParams = new URLSearchParams(window.location.search);
+            const folderId = urlParams.get('folder');
+            console.log('%c🔍🔍🔍 FINAL CHECK: folder parameter =', 'color: green;', folderId);
+            
+            if (folderId && typeof testsPage !== 'undefined') {
+                console.log('%c🔍🔍🔍 FINAL CHECK: Manually triggering navigation to folder:', 'color: green;', folderId);
+                // Force navigation if not already done
+                setTimeout(function() {
+                    if (TestsCommon.currentParentId !== folderId) {
+                        console.log('%c🔍🔍🔍 FINAL CHECK: Forcing navigation to folder', 'color: green;', folderId);
+                        TestsCommon.currentPath = [];
+                        TestsCommon.currentParentId = folderId;
+                        testsPage.loadTests(folderId);
+                    }
+                }, 500);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
