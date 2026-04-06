@@ -83,7 +83,7 @@ const tasksPage = {
                             <div>
                                 <i class="fas ${status.icon} text-${status.class} me-2"></i>
                                 <strong>${t.name || 'Unnamed Task'}</strong>
-                                <small class="text-muted ms-2">ID: ${t.id}</small>
+                                
                             </div>
                             <span class="badge bg-${status.class}">${status.text}</span>
                         </div>
@@ -100,37 +100,49 @@ const tasksPage = {
         }
     },
     
-    exportTask: async function(taskId) {
+    exportTask: async function (taskId) {
         try {
             Utils.showToast('Preparing export...', 'info');
-            
-            const response = await ApiService.get(`/api/compilersTasks/${taskId}/export`);
-            
-            // Get filename from Content-Disposition header or use default
+
+            const token = ApiService.getToken();
+
+            const response = await fetch(`${CONFIG.API_BASE}/api/compilersTasks/${taskId}/export`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.ms-excel, application/octet-stream, */*'
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Export failed (${response.status}): ${errorText}`);
+            }
+
             const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = `task-${taskId}.json`;
+            let filename = `task-${taskId}.xlsx`;
+
             if (contentDisposition) {
                 const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
                 if (match && match[1]) {
                     filename = match[1].replace(/['"]/g, '');
                 }
             }
-            
-            // Get the blob from response
+
             const blob = await response.blob();
-            
-            // Create download link
             const url = window.URL.createObjectURL(blob);
+
             const a = document.createElement('a');
             a.href = url;
             a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+
             window.URL.revokeObjectURL(url);
-            
+
             Utils.showToast('Export completed successfully', 'success');
-            
         } catch (error) {
             Utils.error('Failed to export task:', error);
             Utils.showToast('Failed to export task: ' + error.message, 'error');
@@ -163,8 +175,7 @@ const tasksPage = {
                         </button>
                     </div>
                 </div>
-                <p><strong>ID:</strong> ${task.id}</p>
-                <p><strong>Name:</strong> ${task.name || 'Unnamed'}</p>
+                                <p><strong>Name:</strong> ${task.name || 'Unnamed'}</p>
                 <p><strong>Created:</strong> ${Utils.formatDate(task.dateOfCreation)}</p>
                 ${task.dateOfStart ? `<p><strong>Started:</strong> ${Utils.formatDate(task.dateOfStart)}</p>` : ''}
                 ${task.dateOfCompletion ? `<p><strong>Completed:</strong> ${Utils.formatDate(task.dateOfCompletion)}</p>` : ''}
@@ -189,7 +200,6 @@ const tasksPage = {
                     <div class="mt-3">
                         <h6 class="text-primary">Test</h6>
                         <p><strong>Name:</strong> ${task.test.name}</p>
-                        <p><strong>ID:</strong> ${task.test.id}</p>
                     </div>
                 `;
             }
@@ -199,7 +209,6 @@ const tasksPage = {
                     <div class="mt-3">
                         <h6 class="text-primary">Test Group</h6>
                         <p><strong>Name:</strong> ${task.testGroup.name}</p>
-                        <p><strong>ID:</strong> ${task.testGroup.id}</p>
                     </div>
                 `;
             }
@@ -233,13 +242,14 @@ const tasksPage = {
                             <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="heading-${accordionId}" data-bs-parent="#executedTestsAccordion">
                                 <div class="accordion-body">
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-12 mb-3">
                                             <h6>Compilation</h6>
                                             <p><strong>Duration:</strong> ${ex.compileDuration || 'N/A'}</p>
                                             <p><strong>Exit Code:</strong> ${ex.compilerExitCode !== null ? ex.compilerExitCode : 'N/A'}</p>
                                             ${ex.compilerOutput ? `<pre class="execution-result mt-2"><code>${Utils.escapeHtml(ex.compilerOutput)}</code></pre>` : '<p class="text-muted">No compiler output</p>'}
                                         </div>
-                                        <div class="col-md-6">
+
+                                        <div class="col-12">
                                             <h6>Execution</h6>
                                             <p><strong>Duration:</strong> ${ex.runDuration || 'N/A'}</p>
                                             <p><strong>Exit Code:</strong> ${ex.programExitCode !== null ? ex.programExitCode : 'N/A'}</p>

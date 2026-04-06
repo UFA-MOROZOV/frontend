@@ -73,6 +73,17 @@ async function loadTestData() {
         if (idInput) idInput.value = data.id;
         if (contentInput) contentInput.value = data.content || '';
         if (groupInput) groupInput.value = data.testGroupId || '';
+
+        if (data.testGroupId) {
+            const formCard = document.querySelector('.card-body');
+            if (formCard && !document.getElementById('currentTestFolderInfo')) {
+                const infoDiv = document.createElement('div');
+                infoDiv.id = 'currentTestFolderInfo';
+                infoDiv.className = 'alert alert-info mb-3';
+                infoDiv.innerHTML = `<i class="fas fa-folder-open me-2"></i>Current folder: <strong>${data.testGroup?.name || 'Selected folder'}</strong>`;
+                formCard.insertBefore(infoDiv, formCard.firstChild);
+            }
+        }
         
     } catch (error) {
         Utils.error('Failed to load test data:', error);
