@@ -230,13 +230,14 @@ const tasksPage = {
                             <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="heading-${accordionId}" data-bs-parent="#executedTestsAccordion">
                                 <div class="accordion-body">
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-12 mb-3">
                                             <h6>Compilation</h6>
                                             <p><strong>Duration:</strong> ${ex.compileDuration || 'N/A'}</p>
                                             <p><strong>Exit Code:</strong> ${ex.compilerExitCode !== null ? ex.compilerExitCode : 'N/A'}</p>
                                             ${ex.compilerOutput ? `<pre class="execution-result mt-2"><code>${Utils.escapeHtml(ex.compilerOutput)}</code></pre>` : '<p class="text-muted">No compiler output</p>'}
                                         </div>
-                                        <div class="col-md-6">
+
+                                        <div class="col-12">
                                             <h6>Execution</h6>
                                             <p><strong>Duration:</strong> ${ex.runDuration || 'N/A'}</p>
                                             <p><strong>Exit Code:</strong> ${ex.programExitCode !== null ? ex.programExitCode : 'N/A'}</p>
