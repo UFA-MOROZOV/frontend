@@ -93,10 +93,6 @@ const TestsHeaderAssignment = {
                                 </div>
                             </div>
                             
-                            <div class="mt-3">
-                                <label class="form-label fw-bold">Selected Header IDs (for API)</label>
-                                <textarea class="form-control" id="selectedHeaderIds" rows="3" readonly placeholder="Selected header IDs will appear here"></textarea>
-                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -163,7 +159,6 @@ const TestsHeaderAssignment = {
         const titleEl = document.getElementById('headerAssignmentTitle');
         const descEl = document.getElementById('headerAssignmentDescription');
         const checkboxList = document.getElementById('headersCheckboxList');
-        const selectedIdsEl = document.getElementById('selectedHeaderIds');
         const selectedListEl = document.getElementById('selectedHeadersList');
         
         if (titleEl) {
@@ -171,7 +166,7 @@ const TestsHeaderAssignment = {
         }
         
         if (descEl) {
-            descEl.innerHTML = `Select headers to assign to: <strong>${targetName}</strong> (${targetId})`;
+            descEl.innerHTML = `Select headers to assign to: <strong>${targetName}</strong>`;
         }
         
         // Load currently assigned headers
@@ -199,7 +194,6 @@ const TestsHeaderAssignment = {
                                 <input class="form-check-input header-checkbox" type="checkbox" value="${header.id}" id="header-${header.id}" ${checked}>
                                 <label class="form-check-label" for="header-${header.id}">
                                     <strong>${header.name}</strong>
-                                    <small class="text-muted ms-2">(${header.id})</small>
                                 </label>
                             </div>
                         </div>
@@ -223,16 +217,10 @@ const TestsHeaderAssignment = {
     // Update selected headers display
     updateSelectedHeaders: function() {
         const checkboxes = document.querySelectorAll('.header-checkbox:checked');
-        const selectedIdsEl = document.getElementById('selectedHeaderIds');
         const selectedListEl = document.getElementById('selectedHeadersList');
         
         const selectedIds = Array.from(checkboxes).map(cb => cb.value);
         const selectedHeaders = this.allHeaders.filter(h => selectedIds.includes(h.id));
-        
-        // Update IDs textarea
-        if (selectedIdsEl) {
-            selectedIdsEl.value = selectedIds.join(', ');
-        }
         
         // Update visual list
         if (selectedListEl) {
@@ -245,7 +233,7 @@ const TestsHeaderAssignment = {
                         <li class="mb-2">
                             <i class="fas fa-file-code text-info me-2"></i>
                             <strong>${header.name}</strong>
-                            <small class="text-muted d-block">ID: ${header.id}</small>
+                            
                         </li>
                     `;
                 });

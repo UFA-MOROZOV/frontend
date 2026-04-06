@@ -132,10 +132,9 @@
                 </div>
                 <div class="modal-body">
                     <form id="uploadGroupForm" enctype="multipart/form-data">
+                        <input type="hidden" id="groupUploadId">
                         <div class="mb-3">
-                            <label class="form-label">Group ID</label>
-                            <input type="text" class="form-control" id="groupUploadId" placeholder="Leave empty for current folder">
-                            <small class="text-muted">If empty, uploads to current folder</small>
+                            <small class="text-muted">The group will upload into the current folder.</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">File</label>

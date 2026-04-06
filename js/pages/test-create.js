@@ -14,9 +14,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     const groupIdInput = document.getElementById('testGroupId');
     if (groupIdInput && groupId) {
         groupIdInput.value = groupId;
-        // Make it readonly so user doesn't accidentally change it
-        groupIdInput.readOnly = true;
-        groupIdInput.classList.add('bg-light');
         
         // Try to get group name for display
         try {

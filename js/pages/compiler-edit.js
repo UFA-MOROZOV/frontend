@@ -101,7 +101,7 @@ async function loadCompilerData() {
 async function saveCompiler(e) {
     e.preventDefault();
     
-    const id = parseInt(document.getElementById('editCompilerId').value);
+    const id = parseInt(currentCompilerId, 10);
     const name = document.getElementById('editCompilerName').value.trim();
     const version = document.getElementById('editCompilerVersion').value.trim();
     const commandName = document.getElementById('editCompilerCommand').value.trim();

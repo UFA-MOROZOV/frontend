@@ -70,11 +70,6 @@ async function loadHeaderData() {
             nameDisplay.textContent = data.name || 'Unnamed Header';
         }
         
-        const idDisplay = document.getElementById('headerIdDisplay');
-        if (idDisplay) {
-            idDisplay.textContent = data.id;
-        }
-        
         // Display content
         if (contentDisplay) {
             const content = data.content || 'No content available';

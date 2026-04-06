@@ -57,7 +57,7 @@ const testExecutePage = {
             
             let options = '<option value="">Select a compiler...</option>';
             this.compilers.forEach(c => {
-                options += `<option value="${c.id}">${c.name} v${c.version} (ID: ${c.id})</option>`;
+                options += `<option value="${c.id}">${c.name} v${c.version}</option>`;
             });
             select.innerHTML = options;
             
@@ -104,7 +104,7 @@ const testExecutePage = {
                             <div onclick="testExecutePage.navigateToGroup('${g.id}', '${g.name}')" style="flex-grow: 1;">
                                 <i class="fas fa-folder-open text-warning me-2"></i>
                                 <strong>${g.name}</strong>
-                                <small class="text-muted ms-2">ID: ${g.id}</small>
+                                
                             </div>
                             <div>
                                 <button class="btn btn-sm btn-outline-primary ms-2" onclick="event.stopPropagation(); testExecutePage.selectGroup('${g.id}', '${g.name}')" title="Select this group for execution">
@@ -133,7 +133,7 @@ const testExecutePage = {
                             <div>
                                 <i class="fas fa-file-code text-primary me-2"></i>
                                 <strong>${t.name}</strong>
-                                <small class="text-muted ms-2">ID: ${t.id}</small>
+                                
                             </div>
                             <div>
                                 <button class="btn btn-sm btn-outline-primary" onclick="testExecutePage.selectTest('${t.id}', '${t.name}')" title="Select this test for execution">
@@ -297,8 +297,7 @@ const testExecutePage = {
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle me-2"></i>
                     <strong>Execution started successfully!</strong>
-                    <p class="mb-0 mt-2">Task ID: ${taskId}</p>
-                    <p class="mb-0">Name: ${executionName}</p>
+                                        <p class="mb-0">Name: ${executionName}</p>
                     <hr>
                     <a href="tasks.html" class="btn btn-sm btn-primary">
                         <i class="fas fa-tasks me-1"></i>View Task Status
@@ -335,8 +334,7 @@ const testExecutePage = {
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>Task Status Updated</strong>
-                    <p class="mb-0 mt-2">Task ID: ${task.id}</p>
-                    <p class="mb-0">Name: ${task.name || 'Unnamed'}</p>
+                                        <p class="mb-0">Name: ${task.name || 'Unnamed'}</p>
                     <p class="mb-0">Status: ${task.isCompleted ? 'Completed' : 'In Progress'}</p>
                     ${task.dateOfCompletion ? `<p class="mb-0">Completed: ${Utils.formatDate(task.dateOfCompletion)}</p>` : ''}
                     <hr>

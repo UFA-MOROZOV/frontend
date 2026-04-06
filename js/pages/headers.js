@@ -49,7 +49,7 @@ const headersPage = {
                             <div>
                                 <i class="fas fa-file-code text-success me-2"></i>
                                 <strong>${h.name}</strong>
-                                <small class="text-muted ms-2">ID: ${h.id}</small>
+                                
                             </div>
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-outline-info" onclick="headersPage.viewHeader('${h.id}')">

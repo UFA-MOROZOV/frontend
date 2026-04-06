@@ -82,11 +82,6 @@ async function loadTestData() {
             nameDisplay.textContent = data.name || 'Unnamed Test';
         }
         
-        const idDisplay = document.getElementById('testIdDisplay');
-        if (idDisplay) {
-            idDisplay.textContent = data.id;
-        }
-        
         // Display group info
         const groupDisplay = document.getElementById('testGroupDisplay');
         if (groupDisplay) {

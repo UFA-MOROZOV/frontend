@@ -140,7 +140,7 @@ const testsPage = {
                             <div onclick="testsPage.navigateToGroup('${g.id}', '${g.name}')" style="flex-grow: 1; padding: 5px 0;">
                                 <i class="fas fa-folder-open text-warning me-2"></i>
                                 <strong>${g.name}</strong>
-                                <small class="text-muted ms-2">ID: ${g.id}</small>
+                                
                             </div>
                             <div class="btn-group" onclick="event.stopPropagation();">
                                 <button class="btn btn-sm btn-outline-info" onclick="testsPage.assignHeadersToGroup('${g.id}', '${g.name}')" title="Assign Headers">
@@ -168,7 +168,7 @@ const testsPage = {
                             <div>
                                 <i class="fas fa-file-code text-primary me-2"></i>
                                 <strong>${t.name}</strong>
-                                <small class="text-muted ms-2">ID: ${t.id}</small>
+                                
                             </div>
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-outline-info" onclick="testsPage.viewTest('${t.id}')" title="View">

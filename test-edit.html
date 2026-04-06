@@ -69,15 +69,8 @@
                                 <input type="text" class="form-control" id="editTestName" required>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="editTestId" class="form-label fw-bold">Test ID</label>
-                                <input type="text" class="form-control bg-light" id="editTestId" readonly disabled>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="editTestGroupId" class="form-label fw-bold">Group ID</label>
-                                <input type="text" class="form-control" id="editTestGroupId" placeholder="UUID of parent group">
-                            </div>
+                            <input type="hidden" id="editTestId">
+                            <input type="hidden" id="editTestGroupId">
 
                             <div class="mb-3">
                                 <label for="editTestContent" class="form-label fw-bold">Test Content</label>

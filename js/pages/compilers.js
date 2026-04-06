@@ -150,7 +150,6 @@ const compilersPage = {
                         <div>
                             <h6 class="mb-1">${nameDisplay} <small class="text-muted">v${versionDisplay}</small> ${hasDocker}</h6>
                             <small class="text-muted">
-                                <i class="fas fa-id-card me-1"></i>ID: ${c.id} | 
                                 <i class="fas fa-terminal me-1"></i>Command: ${commandDisplay}
                             </small>
                         </div>
@@ -187,7 +186,7 @@ const compilersPage = {
             
             let options = '<option value="">Select a compiler...</option>';
             compilers.forEach(c => {
-                options += `<option value="${c.id}">${c.name} v${c.version} (ID: ${c.id})</option>`;
+                options += `<option value="${c.id}">${c.name} v${c.version}</option>`;
             });
             select.innerHTML = options;
             

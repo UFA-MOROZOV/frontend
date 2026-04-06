@@ -83,7 +83,7 @@ const tasksPage = {
                             <div>
                                 <i class="fas ${status.icon} text-${status.class} me-2"></i>
                                 <strong>${t.name || 'Unnamed Task'}</strong>
-                                <small class="text-muted ms-2">ID: ${t.id}</small>
+                                
                             </div>
                             <span class="badge bg-${status.class}">${status.text}</span>
                         </div>
@@ -163,8 +163,7 @@ const tasksPage = {
                         </button>
                     </div>
                 </div>
-                <p><strong>ID:</strong> ${task.id}</p>
-                <p><strong>Name:</strong> ${task.name || 'Unnamed'}</p>
+                                <p><strong>Name:</strong> ${task.name || 'Unnamed'}</p>
                 <p><strong>Created:</strong> ${Utils.formatDate(task.dateOfCreation)}</p>
                 ${task.dateOfStart ? `<p><strong>Started:</strong> ${Utils.formatDate(task.dateOfStart)}</p>` : ''}
                 ${task.dateOfCompletion ? `<p><strong>Completed:</strong> ${Utils.formatDate(task.dateOfCompletion)}</p>` : ''}
@@ -189,7 +188,6 @@ const tasksPage = {
                     <div class="mt-3">
                         <h6 class="text-primary">Test</h6>
                         <p><strong>Name:</strong> ${task.test.name}</p>
-                        <p><strong>ID:</strong> ${task.test.id}</p>
                     </div>
                 `;
             }
@@ -199,7 +197,6 @@ const tasksPage = {
                     <div class="mt-3">
                         <h6 class="text-primary">Test Group</h6>
                         <p><strong>Name:</strong> ${task.testGroup.name}</p>
-                        <p><strong>ID:</strong> ${task.testGroup.id}</p>
                     </div>
                 `;
             }
