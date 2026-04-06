@@ -100,37 +100,49 @@ const tasksPage = {
         }
     },
     
-    exportTask: async function(taskId) {
+    exportTask: async function (taskId) {
         try {
             Utils.showToast('Preparing export...', 'info');
-            
-            const response = await ApiService.get(`/api/compilersTasks/${taskId}/export`);
-            
-            // Get filename from Content-Disposition header or use default
+
+            const token = ApiService.getToken();
+
+            const response = await fetch(`${CONFIG.API_BASE}/api/compilersTasks/${taskId}/export`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.ms-excel, application/octet-stream, */*'
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Export failed (${response.status}): ${errorText}`);
+            }
+
             const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = `task-${taskId}.json`;
+            let filename = `task-${taskId}.xlsx`;
+
             if (contentDisposition) {
                 const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
                 if (match && match[1]) {
                     filename = match[1].replace(/['"]/g, '');
                 }
             }
-            
-            // Get the blob from response
+
             const blob = await response.blob();
-            
-            // Create download link
             const url = window.URL.createObjectURL(blob);
+
             const a = document.createElement('a');
             a.href = url;
             a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+
             window.URL.revokeObjectURL(url);
-            
+
             Utils.showToast('Export completed successfully', 'success');
-            
         } catch (error) {
             Utils.error('Failed to export task:', error);
             Utils.showToast('Failed to export task: ' + error.message, 'error');
