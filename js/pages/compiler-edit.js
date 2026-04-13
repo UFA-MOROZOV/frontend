@@ -1,220 +1,311 @@
-// Compiler Edit Page
-let currentCompilerId = null;
+const compilerEditPage = {
+    compilerId: null,
+    compiler: null,
 
-document.addEventListener('DOMContentLoaded', async function() {
+    init: async function () {
+        const params = new URLSearchParams(window.location.search);
+        this.compilerId = params.get('id');
+
+        if (!this.compilerId) {
+            Utils.showToast('Compiler id is missing', 'error');
+            window.location.href = 'compilers.html';
+            return;
+        }
+
+        this.form = document.getElementById('editCompilerForm');
+        this.typeSelect = document.getElementById('compilerType');
+        this.commandNameGroup = document.getElementById('commandNameGroup');
+        this.commandNameInput = document.querySelector('input[name="CommandName"]');
+        this.fileHint = document.getElementById('compilerFileHint');
+        this.dockerActions = document.getElementById('dockerActions');
+        this.uploadSectionTitle = document.getElementById('uploadSectionTitle');
+
+        if (this.dockerActions) {
+            this.dockerActions.classList.add('d-none');
+        }
+        if (this.commandNameGroup) {
+            this.commandNameGroup.classList.add('d-none');
+        }
+
+        this.bindEvents();
+        await this.loadCompiler();
+    },
+
+    bindEvents: function () {
+        if (this.form) {
+            this.form.addEventListener('submit', (e) => this.handleSave(e));
+        }
+
+        if (this.typeSelect) {
+            this.typeSelect.addEventListener('change', () => this.updateFormByType());
+        }
+
+        const uploadForm = document.getElementById('uploadCompilerFileForm');
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', (e) => this.handleUpload(e));
+        }
+
+        const deleteDockerBtn = document.getElementById('deleteDockerImageBtn');
+        if (deleteDockerBtn) {
+            deleteDockerBtn.addEventListener('click', () => this.deleteDockerImage());
+        }
+
+        const downloadDockerBtn = document.getElementById('downloadDockerImageBtn');
+        if (downloadDockerBtn) {
+            downloadDockerBtn.addEventListener('click', () => this.downloadDockerImage());
+        }
+    },
+
+    loadCompiler: async function () {
+        LoadingOverlay.show('Loading compiler...', true);
+
+        try {
+            const response = await ApiService.get('/api/compilers');
+            const compilers = await response.json();
+
+            this.compiler = compilers.find(c => String(c.id) === String(this.compilerId));
+
+            if (!this.compiler) {
+                throw new Error('Compiler not found');
+            }
+
+            document.querySelector('input[name="Id"]').value = this.compiler.id;
+            document.querySelector('input[name="Name"]').value = this.compiler.name || '';
+            document.querySelector('input[name="Version"]').value = this.compiler.version || '';
+            this.typeSelect.value = String(this.compiler.type ?? 0);
+
+            if (this.commandNameInput) {
+                this.commandNameInput.value = this.compiler.commandName || '';
+            }
+
+            this.updateFormByType();
+            this.renderCompilerStatus();
+
+            LoadingOverlay.hide();
+        } catch (error) {
+            LoadingOverlay.hide();
+            Utils.error('Failed to load compiler:', error);
+            Utils.showToast(error.message, 'error');
+        }
+    },
+
+    updateFormByType: function () {
+        const type = parseInt(this.typeSelect.value, 10);
+        const isDocker = type === 0;
+
+        if (this.commandNameGroup) {
+            this.commandNameGroup.classList.toggle('d-none', !isDocker);
+        }
+
+        if (this.commandNameInput) {
+            this.commandNameInput.required = isDocker;
+            if (!isDocker) {
+                this.commandNameInput.value = '';
+            } else if (this.compiler) {
+                this.commandNameInput.value = this.compiler.commandName || '';
+            }
+        }
+
+        if (this.fileHint) {
+            this.fileHint.textContent = isDocker
+                ? 'Optional: upload a Docker image archive (.tar).'
+                : 'Optional: upload an executable compiler file.';
+        }
+
+        if (this.uploadSectionTitle) {
+            this.uploadSectionTitle.textContent = isDocker ? 'Docker Image File' : 'Executable File';
+        }
+
+        if (this.dockerActions) {
+            this.dockerActions.classList.toggle('d-none', !isDocker);
+        }
+
+        const downloadBtn = document.getElementById('downloadDockerImageBtn');
+        const deleteBtn = document.getElementById('deleteDockerImageBtn');
+
+        if (!isDocker) {
+            if (downloadBtn) downloadBtn.disabled = true;
+            if (deleteBtn) deleteBtn.disabled = true;
+        } else if (this.compiler) {
+            const hasDocker = this.compiler.hasDockerLocally === true;
+
+            if (downloadBtn) {
+                downloadBtn.disabled = hasDocker;
+                downloadBtn.title = hasDocker ? 'Docker image already exists locally' : 'Download Docker image';
+            }
+
+            if (deleteBtn) {
+                deleteBtn.disabled = !hasDocker;
+                deleteBtn.title = hasDocker ? 'Delete Docker image' : 'No Docker image to delete';
+            }
+        }
+    },
+
+    renderCompilerStatus: function () {
+        const statusBox = document.getElementById('compilerStatus');
+        if (!statusBox || !this.compiler) return;
+
+        const isDocker = this.compiler.type === 0;
+
+        let statusHtml = `
+            <div><strong>Type:</strong> ${isDocker ? 'Docker' : 'Executable'}</div>
+            <div><strong>Name:</strong> ${Utils.escapeHtml(this.compiler.name || 'N/A')}</div>
+            <div><strong>Version:</strong> ${Utils.escapeHtml(this.compiler.version || 'N/A')}</div>
+        `;
+
+        if (isDocker) {
+            const hasDocker = this.compiler.hasDockerLocally === true;
+
+            statusHtml += `
+                <div><strong>Command:</strong> ${Utils.escapeHtml(this.compiler.commandName || 'Not set')}</div>
+                <div><strong>Docker status:</strong> ${hasDocker ? 'Available locally' : 'Not downloaded'}</div>
+            `;
+
+            const downloadBtn = document.getElementById('downloadDockerImageBtn');
+            const deleteBtn = document.getElementById('deleteDockerImageBtn');
+
+            if (downloadBtn) {
+                downloadBtn.disabled = hasDocker;
+                downloadBtn.title = hasDocker ? 'Docker image already exists locally' : 'Download Docker image';
+            }
+
+            if (deleteBtn) {
+                deleteBtn.disabled = !hasDocker;
+                deleteBtn.title = hasDocker ? 'Delete Docker image' : 'No Docker image to delete';
+            }
+        } else {
+            statusHtml += `
+                <div><strong>File status:</strong> ${this.compiler.executablePath ? 'Uploaded' : 'Not uploaded'}</div>
+            `;
+        }
+
+        statusBox.innerHTML = statusHtml;
+    },
+
+    handleSave: async function (e) {
+        e.preventDefault();
+
+        const type = parseInt(this.typeSelect.value, 10);
+
+        const payload = {
+            id: parseInt(document.querySelector('input[name="Id"]').value, 10),
+            name: document.querySelector('input[name="Name"]').value,
+            version: document.querySelector('input[name="Version"]').value
+        };
+
+        if (type === 0) {
+            payload.commandName = document.querySelector('input[name="CommandName"]').value;
+        }
+
+        LoadingOverlay.show('Saving compiler...', true);
+        LoadingOverlay.updateProgress(50, 'Updating data');
+
+        try {
+            await ApiService.put('/api/compilers', payload);
+
+            LoadingOverlay.updateProgress(100, 'Saved');
+            setTimeout(() => LoadingOverlay.hide(), 400);
+
+            Utils.showToast('Compiler updated successfully', 'success');
+
+            await this.loadCompiler();
+        } catch (error) {
+            LoadingOverlay.hide();
+            Utils.error('Failed to update compiler:', error);
+            Utils.showToast(error.message, 'error');
+        }
+    },
+
+    handleUpload: async function (e) {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('compilerFile');
+        const file = fileInput.files && fileInput.files[0];
+
+        if (!file) {
+            Utils.showToast('Please choose a file', 'error');
+            return;
+        }
+
+        if (!Utils.validateFileSize(file)) {
+            Utils.showToast('File too large (max 100MB)', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('imageFile', file);
+
+        LoadingOverlay.show('Uploading file...', true);
+        LoadingOverlay.updateProgress(50, 'Sending file');
+
+        try {
+            await ApiService.put(`/api/compilers/${this.compilerId}/uploadFile`, formData);
+
+            LoadingOverlay.updateProgress(100, 'Uploaded');
+            setTimeout(() => LoadingOverlay.hide(), 400);
+
+            Utils.showToast('File uploaded successfully', 'success');
+            fileInput.value = '';
+
+            await this.loadCompiler();
+        } catch (error) {
+            LoadingOverlay.hide();
+            Utils.error('Upload failed:', error);
+            Utils.showToast(error.message, 'error');
+        }
+    },
+
+    downloadDockerImage: async function () {
+        if (!this.compiler || this.compiler.type !== 0) return;
+
+        LoadingOverlay.show('Downloading Docker image...', true);
+        LoadingOverlay.updateProgress(50, 'Request sent');
+
+        try {
+            await ApiService.put(`/api/compilers/${this.compilerId}/download`);
+
+            LoadingOverlay.updateProgress(100, 'Started');
+            setTimeout(() => LoadingOverlay.hide(), 400);
+
+            Utils.showToast('Docker image download started', 'success');
+            await this.loadCompiler();
+        } catch (error) {
+            LoadingOverlay.hide();
+            Utils.error('Docker download failed:', error);
+            Utils.showToast(error.message, 'error');
+        }
+    },
+
+    deleteDockerImage: async function () {
+        if (!this.compiler || this.compiler.type !== 0) return;
+        if (!confirm('Are you sure you want to delete the Docker image?')) return;
+
+        LoadingOverlay.show('Deleting Docker image...', true);
+        LoadingOverlay.updateProgress(50, 'Removing image');
+
+        try {
+            await ApiService.delete(`/api/compilers/${this.compilerId}/image`);
+
+            LoadingOverlay.updateProgress(100, 'Deleted');
+            setTimeout(() => LoadingOverlay.hide(), 400);
+
+            Utils.showToast('Docker image deleted successfully', 'success');
+            await this.loadCompiler();
+        } catch (error) {
+            LoadingOverlay.hide();
+            Utils.error('Delete Docker image failed:', error);
+            Utils.showToast(error.message, 'error');
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function () {
     AuthModule.init();
-    
+
     if (!ApiService.getToken()) {
         window.location.href = 'index.html';
         return;
     }
-    
-    // Get compiler ID from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    currentCompilerId = urlParams.get('id');
-    
-    if (!currentCompilerId) {
-        Utils.showToast('No compiler ID provided', 'error');
-        setTimeout(() => {
-            window.location.href = 'compilers.html';
-        }, 2000);
-        return;
-    }
-    
-    await loadCompilerData();
-    
-    // Bind events
-    const cancelBtn = document.getElementById('cancelEditBtn');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-            window.location.href = 'compilers.html';
-        });
-    }
-    
-    const editForm = document.getElementById('editCompilerForm');
-    if (editForm) {
-        editForm.addEventListener('submit', saveCompiler);
-    }
-    
-    const deleteDockerBtn = document.getElementById('deleteDockerImageBtn');
-    if (deleteDockerBtn) {
-        deleteDockerBtn.addEventListener('click', deleteDockerImage);
-    }
-    
-    const downloadImageBtn = document.getElementById('downloadImageBtn');
-    if (downloadImageBtn) {
-        downloadImageBtn.addEventListener('click', downloadImage);
-    }
+
+    compilerEditPage.init();
 });
-
-async function loadCompilerData() {
-    try {
-        Utils.log('Loading compiler data for ID:', currentCompilerId);
-        
-        const response = await ApiService.get('/api/compilers');
-        const compilers = await response.json();
-        const compiler = compilers.find(c => c.id == currentCompilerId);
-        
-        if (!compiler) {
-            throw new Error('Compiler not found');
-        }
-        
-        Utils.log('Compiler data received:', compiler);
-        
-        // Update page title
-        const titleElement = document.getElementById('compilerName');
-        if (titleElement) {
-            titleElement.textContent = compiler.name || 'Edit Compiler';
-        }
-        
-        // Populate form
-        document.getElementById('editCompilerId').value = compiler.id;
-        document.getElementById('editCompilerName').value = compiler.name || '';
-        document.getElementById('editCompilerVersion').value = compiler.version || '';
-        document.getElementById('editCompilerCommand').value = compiler.commandName || '';
-        
-        const hasDockerCheckbox = document.getElementById('editCompilerHasDocker');
-        if (hasDockerCheckbox) {
-            hasDockerCheckbox.checked = compiler.hasDockerLocally || false;
-        }
-        
-        // Update Docker status and buttons
-        const dockerStatus = document.getElementById('dockerStatus');
-        const deleteDockerBtn = document.getElementById('deleteDockerImageBtn');
-        
-        if (dockerStatus) {
-            if (compiler.hasDockerLocally) {
-                dockerStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-2"></i>Docker image is present locally</span>';
-                if (deleteDockerBtn) deleteDockerBtn.disabled = false;
-            } else {
-                dockerStatus.innerHTML = '<span class="text-muted"><i class="fas fa-times-circle me-2"></i>No Docker image present locally</span>';
-                if (deleteDockerBtn) deleteDockerBtn.disabled = true;
-            }
-        }
-        
-    } catch (error) {
-        Utils.error('Failed to load compiler data:', error);
-        Utils.showToast(error.message, 'error');
-    }
-}
-
-async function saveCompiler(e) {
-    e.preventDefault();
-    
-    const id = parseInt(currentCompilerId, 10);
-    const name = document.getElementById('editCompilerName').value.trim();
-    const version = document.getElementById('editCompilerVersion').value.trim();
-    const commandName = document.getElementById('editCompilerCommand').value.trim();
-    
-    if (!name || !version || !commandName) {
-        Utils.showToast('All fields are required', 'error');
-        return;
-    }
-    
-    try {
-        await ApiService.put('/api/compilers', {
-            id: id,
-            name: name,
-            version: version,
-            commandName: commandName
-        });
-        
-        Utils.showToast('Compiler updated successfully', 'success');
-        
-        setTimeout(() => {
-            window.location.href = 'compilers.html';
-        }, 1500);
-        
-    } catch (error) {
-        Utils.error('Failed to update compiler:', error);
-        Utils.showToast(error.message, 'error');
-    }
-}
-
-async function deleteDockerImage() {
-    if (!confirm('Are you sure you want to delete the Docker image for this compiler? This action cannot be undone.')) {
-        return;
-    }
-    
-    LoadingOverlay.show('Deleting Docker image...', true);
-    LoadingOverlay.updateProgress(30, 'Removing image...');
-    
-    try {
-        await ApiService.delete(`/api/compilers/${currentCompilerId}/image`);
-        
-        LoadingOverlay.updateProgress(100, 'Image deleted successfully');
-        LoadingOverlay.hide();
-        
-        Utils.showToast('Docker image deleted successfully', 'success');
-        await loadCompilerData();
-        
-    } catch (error) {
-        LoadingOverlay.hide();
-        Utils.error('Failed to delete Docker image:', error);
-        Utils.showToast(error.message, 'error');
-    }
-}
-
-async function downloadImage() {
-    // Show loading overlay with steps
-    const steps = [
-        { message: 'Initiating download...', detail: 'Connecting to server' },
-        { message: 'Downloading Docker image...', detail: 'This may take several minutes' },
-        { message: 'Processing image...', detail: 'Almost done' },
-        { message: 'Finalizing...', detail: 'Completing setup' }
-    ];
-    
-    LoadingOverlay.showSteps(steps);
-    
-    try {
-        // Step 1: Initiating
-        LoadingOverlay.updateStep(0);
-        
-        // Make the API call with longer timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout for download
-        
-        // Step 2: Downloading
-        LoadingOverlay.updateStep(1);
-        
-        const response = await fetch(CONFIG.API_BASE + `/api/compilers/${currentCompilerId}/download`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${ApiService.getToken()}`
-            },
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error(`Download failed: ${response.status}`);
-        }
-        
-        // Step 3: Processing
-        LoadingOverlay.updateStep(2);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay for UX
-        
-        // Step 4: Finalizing
-        LoadingOverlay.updateStep(3);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        LoadingOverlay.hide();
-        Utils.showToast('Download triggered successfully', 'success');
-        
-        // Reload compiler data to update status
-        setTimeout(async () => {
-            await loadCompilerData();
-        }, 5000);
-        
-    } catch (error) {
-        LoadingOverlay.hide();
-        
-        if (error.name === 'AbortError') {
-            Utils.showToast('Download timed out after 5 minutes', 'error');
-        } else {
-            Utils.error('Failed to download image:', error);
-            Utils.showToast(error.message, 'error');
-        }
-    }
-}
