@@ -47,11 +47,11 @@ const testExecutePage = {
         
         try {
             // Load only compilers with Docker locally
-            const response = await ApiService.get('/api/compilers?hasDockerLocally=true');
+            const response = await ApiService.get('/api/compilers?onlyReady=true');
             this.compilers = await response.json();
             
             if (this.compilers.length === 0) {
-                select.innerHTML = '<option value="">No compilers with Docker available</option>';
+                select.innerHTML = '<option value="">No compilers available</option>';
                 return;
             }
             

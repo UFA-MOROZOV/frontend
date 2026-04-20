@@ -1,7 +1,7 @@
 // Compilers page
 const compilersPage = {
     allCompilers: [],
-    dockerFilter: false,
+    readyFilter: false,
     searchTerm: '',
     searchTimeout: null,
 
@@ -44,11 +44,11 @@ const compilersPage = {
             });
         }
 
-        const dockerFilter = document.getElementById('dockerFilter');
-        if (dockerFilter) {
-            dockerFilter.addEventListener('change', () => {
-                this.dockerFilter = dockerFilter.checked;
-                this.applyFilters();
+        const readyFilter = document.getElementById('readyFilter');
+        if (readyFilter) {
+            readyFilter.addEventListener('change', () => {
+                this.readyFilter = readyFilter.checked;
+                this.loadCompilers();
             });
         }
     },
@@ -124,7 +124,7 @@ const compilersPage = {
         Utils.showLoading('compilerList');
 
         try {
-            let url = '/api/compilers';
+            let url = `/api/compilers?onlyReady=${this.readyFilter}`;
             const params = new URLSearchParams();
 
             if (this.searchTerm) {
@@ -141,7 +141,7 @@ const compilersPage = {
             const response = await ApiService.get(url);
             this.allCompilers = await response.json();
 
-            this.applyFilters();
+            this.render();
 
         } catch (error) {
             Utils.error('Failed to load compilers:', error);
@@ -149,12 +149,8 @@ const compilersPage = {
         }
     },
 
-    applyFilters: function () {
+    render: function () {
         let filtered = [...this.allCompilers];
-
-        if (this.dockerFilter) {
-            filtered = filtered.filter(c => c.hasDockerLocally === true);
-        }
 
         this.updateFiltersDisplay();
         this.renderCompilers(filtered);
@@ -165,7 +161,7 @@ const compilersPage = {
         if (!filtersDiv) return;
 
         let filters = [];
-        if (this.dockerFilter) filters.push('Docker ready only');
+        if (this.readyFilter) filters.push('Ready only');
         if (this.searchTerm) filters.push(`Search: "${Utils.escapeHtml(this.searchTerm)}"`);
 
         if (filters.length > 0) {
