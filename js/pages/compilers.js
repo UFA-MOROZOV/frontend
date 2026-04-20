@@ -10,6 +10,7 @@ const compilersPage = {
         this.executeForm = document.getElementById('executeCodeForm');
         this.typeSelect = document.getElementById('compilerType');
         this.commandNameGroup = document.getElementById('commandNameGroup');
+        this.imageNameGroup = document.getElementById('imageNameGroup');
         this.fileHint = document.getElementById('compilerFileHint');
 
         this.bindEvents();
@@ -71,9 +72,21 @@ const compilersPage = {
             }
         }
 
+        if (this.imageNameGroup) {
+            this.imageNameGroup.style.display = isDocker ? '' : 'none';
+
+            const input = this.imageNameGroup.querySelector('input[name="ImageName"]');
+            if (input) {
+                input.required = isDocker;
+                if (!isDocker) {
+                    input.value = '';
+                }
+            }
+        }
+
         if (this.fileHint) {
             this.fileHint.textContent = isDocker
-                ? 'Optional: upload a Docker image archive (.tar). Command name is used only for Docker compilers.'
+                ? 'Optional: upload a Docker image archive (.tar). Command name and image name are used only for Docker compilers.'
                 : 'Optional: upload an executable compiler file.';
         }
     },
@@ -124,17 +137,14 @@ const compilersPage = {
         Utils.showLoading('compilerList');
 
         try {
-            let url = `/api/compilers?onlyReady=${this.readyFilter}`;
             const params = new URLSearchParams();
+            params.append('onlyReady', this.readyFilter);
 
             if (this.searchTerm) {
                 params.append('Keyword', this.searchTerm);
             }
 
-            const queryString = params.toString();
-            if (queryString) {
-                url += '?' + queryString;
-            }
+            const url = `/api/compilers?${params.toString()}`;
 
             Utils.log('Loading compilers with URL:', url);
 
@@ -326,6 +336,7 @@ const compilersPage = {
 
         if (type !== 0) {
             formData.delete('CommandName');
+            formData.delete('ImageName');
         }
 
         if (file && file.size > 0 && !Utils.validateFileSize(file)) {

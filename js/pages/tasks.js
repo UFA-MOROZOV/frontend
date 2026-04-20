@@ -108,7 +108,7 @@ const tasksPage = {
 
             // Get filename from Content-Disposition header or use default
             const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = `task-${taskId}.json`;
+            let filename = `task-${taskId}.xlsx`;
             if (contentDisposition) {
                 const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
                 if (match && match[1]) {
@@ -225,9 +225,39 @@ const tasksPage = {
                 `;
 
                 task.testsExecuted.forEach((ex, index) => {
-                    const success = ex.compilationSucceeded;
-                    const statusIcon = success ? 'fa-check-circle text-success' : 'fa-times-circle text-danger';
-                    const statusText = success ? 'Passed' : 'Failed';
+                    let statusClass = 'secondary';
+                    let statusIcon = 'fa-question-circle text-secondary';
+                    let statusText = 'Unknown';
+
+                    if (task.run) {
+                        if (ex.compilationSucceeded !== true) {
+                            statusClass = 'danger';
+                            statusIcon = 'fa-times-circle text-danger';
+                            statusText = 'Compilation Failed';
+                        } else if (ex.programExitCode === null || ex.programExitCode === undefined) {
+                            statusClass = 'warning';
+                            statusIcon = 'fa-exclamation-circle text-warning';
+                            statusText = 'Run Missing';
+                        } else if (ex.programExitCode === 0) {
+                            statusClass = 'success';
+                            statusIcon = 'fa-check-circle text-success';
+                            statusText = 'Passed';
+                        } else {
+                            statusClass = 'danger';
+                            statusIcon = 'fa-times-circle text-danger';
+                            statusText = 'Run Failed';
+                        }
+                    } else {
+                        if (ex.compilationSucceeded === true) {
+                            statusClass = 'success';
+                            statusIcon = 'fa-check-circle text-success';
+                            statusText = 'Compiled';
+                        } else if (ex.compilationSucceeded === false) {
+                            statusClass = 'danger';
+                            statusIcon = 'fa-times-circle text-danger';
+                            statusText = 'Compilation Failed';
+                        }
+                    }
                     const accordionId = `test-${index}`;
                     const collapseId = `collapse-${index}`;
 
@@ -239,26 +269,37 @@ const tasksPage = {
                                         <i class="fas ${statusIcon} me-2"></i>
                                         <strong>${ex.test.name}</strong>
                                         <span class="badge bg-secondary ms-2 me-2">${ex.duration || '0s'}</span>
-                                        <span class="badge bg-${success ? 'success' : 'danger'}">${statusText}</span>
+                                        <span class="badge bg-${statusClass}">${statusText}</span>
                                     </div>
                                 </button>
                             </h2>
                             <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="heading-${accordionId}" data-bs-parent="#executedTestsAccordion">
                                 <div class="accordion-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h6>Compilation</h6>
-                                            <p><strong>Duration:</strong> ${ex.compileDuration || 'N/A'}</p>
-                                            <p><strong>Exit Code:</strong> ${ex.compilerExitCode !== null ? ex.compilerExitCode : 'N/A'}</p>
-                                            ${ex.compilerOutput ? `<pre class="execution-result mt-2"><code>${Utils.escapeHtml(ex.compilerOutput)}</code></pre>` : '<p class="text-muted">No compiler output</p>'}
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6>Execution</h6>
-                                            <p><strong>Duration:</strong> ${ex.runDuration || 'N/A'}</p>
-                                            <p><strong>Exit Code:</strong> ${ex.programExitCode !== null ? ex.programExitCode : 'N/A'}</p>
-                                            ${ex.programOutput ? `<pre class="execution-result mt-2"><code>${Utils.escapeHtml(ex.programOutput)}</code></pre>` : '<p class="text-muted">No program output</p>'}
-                                        </div>
+                                    <div class="mb-4">
+                                        <h6 class="border-bottom pb-2">Compilation</h6>
+                                        <p><strong>Duration:</strong> ${ex.compileDuration || 'N/A'}</p>
+                                        <p><strong>Exit Code:</strong> ${ex.compilerExitCode !== null && ex.compilerExitCode !== undefined ? ex.compilerExitCode : 'N/A'}</p>
+                                        ${ex.compilerOutput
+                                                            ? `<pre class="execution-result mt-2"><code>${Utils.escapeHtml(ex.compilerOutput)}</code></pre>`
+                                                            : '<p class="text-muted">No compiler output</p>'
+                                                        }
                                     </div>
+
+                                    <div class="mb-3">
+                                        <h6 class="border-bottom pb-2">Execution</h6>
+                                        ${!task.run
+                                                            ? '<p class="text-muted">Program execution was disabled for this task</p>'
+                                                            : `
+                                                    <p><strong>Duration:</strong> ${ex.runDuration || 'N/A'}</p>
+                                                    <p><strong>Exit Code:</strong> ${ex.programExitCode !== null && ex.programExitCode !== undefined ? ex.programExitCode : 'N/A'}</p>
+                                                    ${ex.programOutput
+                                                                ? `<pre class="execution-result mt-2"><code>${Utils.escapeHtml(ex.programOutput)}</code></pre>`
+                                                                : '<p class="text-muted">No program output</p>'
+                                                            }
+                                                `
+                                                        }
+                                    </div>
+
                                     ${ex.duration && ex.duration !== '00:00:00' ? `<p><strong>Total Duration:</strong> ${ex.duration}</p>` : ''}
                                 </div>
                             </div>

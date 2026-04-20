@@ -16,6 +16,8 @@ const compilerEditPage = {
         this.typeSelect = document.getElementById('compilerType');
         this.commandNameGroup = document.getElementById('commandNameGroup');
         this.commandNameInput = document.querySelector('input[name="CommandName"]');
+        this.imageNameGroup = document.getElementById('imageNameGroup');
+        this.imageNameInput = document.querySelector('input[name="ImageName"]');
         this.fileHint = document.getElementById('compilerFileHint');
         this.dockerActions = document.getElementById('dockerActions');
         this.uploadSectionTitle = document.getElementById('uploadSectionTitle');
@@ -25,6 +27,9 @@ const compilerEditPage = {
         }
         if (this.commandNameGroup) {
             this.commandNameGroup.classList.add('d-none');
+        }
+        if (this.imageNameGroup) {
+            this.imageNameGroup.classList.add('d-none');
         }
 
         this.bindEvents();
@@ -77,6 +82,9 @@ const compilerEditPage = {
             if (this.commandNameInput) {
                 this.commandNameInput.value = this.compiler.commandName || '';
             }
+            if (this.imageNameInput) {
+                this.imageNameInput.value = this.compiler.imageName || '';
+            }
 
             this.updateFormByType();
             this.renderCompilerStatus();
@@ -103,6 +111,19 @@ const compilerEditPage = {
                 this.commandNameInput.value = '';
             } else if (this.compiler) {
                 this.commandNameInput.value = this.compiler.commandName || '';
+            }
+        }
+
+        if (this.imageNameGroup) {
+            this.imageNameGroup.classList.toggle('d-none', !isDocker);
+        }
+
+        if (this.imageNameInput) {
+            this.imageNameInput.required = isDocker;
+            if (!isDocker) {
+                this.imageNameInput.value = '';
+            } else if (this.compiler) {
+                this.imageNameInput.value = this.compiler.imageName || '';
             }
         }
 
@@ -158,6 +179,7 @@ const compilerEditPage = {
 
             statusHtml += `
                 <div><strong>Command:</strong> ${Utils.escapeHtml(this.compiler.commandName || 'Not set')}</div>
+                <div><strong>Image name:</strong> ${Utils.escapeHtml(this.compiler.imageName || 'Not set')}</div>
                 <div><strong>Docker status:</strong> ${hasDocker ? 'Available locally' : 'Not downloaded'}</div>
             `;
 
@@ -195,6 +217,7 @@ const compilerEditPage = {
 
         if (type === 0) {
             payload.commandName = document.querySelector('input[name="CommandName"]').value;
+            payload.imageName = document.querySelector('input[name="ImageName"]').value;
         }
 
         LoadingOverlay.show('Saving compiler...', true);
