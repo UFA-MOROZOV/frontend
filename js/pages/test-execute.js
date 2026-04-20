@@ -10,6 +10,13 @@ const testExecutePage = {
         this.bindEvents();
         this.loadTests();
     },
+
+    getTaskStatusText: function (task) {
+        if (task.dateOfCompletion) return 'Completed';
+        if (task.dateOfStart) return 'In Progress';
+        if (task.dateOfCreation) return 'Pending';
+        return 'Unknown';
+    },
     
     bindEvents: function() {
         const form = document.getElementById('executeTestsForm');
@@ -254,6 +261,7 @@ const testExecutePage = {
         const compilerId = document.getElementById('compilerSelect').value;
         const executionName = document.getElementById('executionName').value.trim();
         const mode = document.querySelector('input[name="executionMode"]:checked')?.value;
+        const run = document.getElementById('runCompiledPrograms')?.checked ?? false;
         
         if (!compilerId) {
             Utils.showToast('Please select a compiler', 'error');
@@ -278,7 +286,8 @@ const testExecutePage = {
             // Build payload - name is required
             const payload = {
                 name: executionName,
-                compilerId: parseInt(compilerId)
+                compilerId: parseInt(compilerId, 10),
+                run: run
             };
             
             // Add testId or testGroupId based on mode
@@ -335,7 +344,10 @@ const testExecutePage = {
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>Task Status Updated</strong>
                                         <p class="mb-0">Name: ${task.name || 'Unnamed'}</p>
-                    <p class="mb-0">Status: ${task.isCompleted ? 'Completed' : 'In Progress'}</p>
+                    <p class="mb-0">Status: ${this.getTaskStatusText(task)}</p>
+                    <p class="mb-0">Run after compile: ${task.run ? 'Yes' : 'No'}</p>
+                    <p class="mb-0">Successful compilations: ${task.successfulCompilations || 0}/${task.tasksCount || 0}</p>
+                    ${task.run ? `<p class="mb-0">Successful runs: ${task.successfulRuns || 0}/${task.tasksCount || 0}</p>` : ''}
                     ${task.dateOfCompletion ? `<p class="mb-0">Completed: ${Utils.formatDate(task.dateOfCompletion)}</p>` : ''}
                     <hr>
                     <a href="tasks.html" class="btn btn-sm btn-primary">

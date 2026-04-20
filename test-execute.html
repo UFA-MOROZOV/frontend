@@ -61,18 +61,18 @@
                                     <option value="">Loading compilers...</option>
                                 </select>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Execution Mode</label>
                                 <div class="btn-group w-100" role="group">
                                     <input type="radio" class="btn-check" name="executionMode" id="modeTest" value="test" checked>
                                     <label class="btn btn-outline-primary" for="modeTest">Single Test</label>
-                                    
+
                                     <input type="radio" class="btn-check" name="executionMode" id="modeGroup" value="group">
                                     <label class="btn btn-outline-primary" for="modeGroup">Test Group</label>
                                 </div>
                             </div>
-                            
+
                             <div class="mb-3" id="selectedItemContainer">
                                 <label class="form-label fw-bold">Selected Item</label>
                                 <div class="input-group">
@@ -85,13 +85,25 @@
                                 </div>
                                 <small class="text-muted">Click the "Select" button next to a test or group to choose it</small>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Execution Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="executionName" placeholder="Enter a name for this execution" required>
                                 <small class="text-muted">A descriptive name is required for the task</small>
                             </div>
-                            
+
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="runCompiledPrograms" checked>
+                                    <label class="form-check-label fw-bold" for="runCompiledPrograms">
+                                        Run compiled programs
+                                    </label>
+                                </div>
+                                <small class="text-muted">
+                                    If enabled, compiled programs will also be executed after compilation.
+                                </small>
+                            </div>
+
                             <button type="submit" class="btn btn-success w-100" id="executeBtn" disabled>
                                 <i class="fas fa-play me-2"></i>Execute
                             </button>

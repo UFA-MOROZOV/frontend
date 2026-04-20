@@ -169,7 +169,9 @@ const tasksPage = {
                 ${task.dateOfStart ? `<p><strong>Started:</strong> ${Utils.formatDate(task.dateOfStart)}</p>` : ''}
                 ${task.dateOfCompletion ? `<p><strong>Completed:</strong> ${Utils.formatDate(task.dateOfCompletion)}</p>` : ''}
                 <p><strong>Status:</strong> <span class="badge bg-${status.class}">${status.text}</span></p>
-                <p><strong>Test Results:</strong> ${task.successfulTasksCount || 0}/${task.tasksCount || 0} successful</p>
+                <p><strong>Run after compile:</strong> ${task.run ? 'Yes' : 'No'}</p>
+                <p><strong>Successful compilations:</strong> ${task.successfulCompilations || 0}/${task.tasksCount || 0}</p>
+                ${task.run ? `<p><strong>Successful runs:</strong> ${task.successfulRuns || 0}/${task.tasksCount || 0}</p>` : ''}
             `;
 
             if (task.compiler) {
