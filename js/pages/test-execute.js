@@ -10,6 +10,13 @@ const testExecutePage = {
         this.bindEvents();
         this.loadTests();
     },
+
+    getTaskStatusText: function (task) {
+        if (task.dateOfCompletion) return 'Completed';
+        if (task.dateOfStart) return 'In Progress';
+        if (task.dateOfCreation) return 'Pending';
+        return 'Unknown';
+    },
     
     bindEvents: function() {
         const form = document.getElementById('executeTestsForm');
@@ -47,11 +54,11 @@ const testExecutePage = {
         
         try {
             // Load only compilers with Docker locally
-            const response = await ApiService.get('/api/compilers?hasDockerLocally=true');
+            const response = await ApiService.get('/api/compilers?onlyReady=true');
             this.compilers = await response.json();
             
             if (this.compilers.length === 0) {
-                select.innerHTML = '<option value="">No compilers with Docker available</option>';
+                select.innerHTML = '<option value="">No compilers available</option>';
                 return;
             }
             
@@ -253,7 +260,9 @@ const testExecutePage = {
         
         const compilerId = document.getElementById('compilerSelect').value;
         const executionName = document.getElementById('executionName').value.trim();
+        const flags = document.getElementById('flags').value.trim();
         const mode = document.querySelector('input[name="executionMode"]:checked')?.value;
+        const run = document.getElementById('runCompiledPrograms')?.checked ?? false;
         
         if (!compilerId) {
             Utils.showToast('Please select a compiler', 'error');
@@ -278,7 +287,9 @@ const testExecutePage = {
             // Build payload - name is required
             const payload = {
                 name: executionName,
-                compilerId: parseInt(compilerId)
+                compilerId: parseInt(compilerId, 10),
+                run: run,
+                flags: flags || ""
             };
             
             // Add testId or testGroupId based on mode
@@ -327,7 +338,7 @@ const testExecutePage = {
         statusDiv.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div><p>Refreshing task status...</p></div>';
         
         try {
-            const response = await ApiService.get(`/api/compilersTasks/${taskId}`);
+            const response = await ApiService.get(`/api/CompilerTasks/${taskId}`);
             const task = await response.json();
             
             let html = `
@@ -335,7 +346,10 @@ const testExecutePage = {
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>Task Status Updated</strong>
                                         <p class="mb-0">Name: ${task.name || 'Unnamed'}</p>
-                    <p class="mb-0">Status: ${task.isCompleted ? 'Completed' : 'In Progress'}</p>
+                    <p class="mb-0">Status: ${this.getTaskStatusText(task)}</p>
+                    <p class="mb-0">Run after compile: ${task.run ? 'Yes' : 'No'}</p>
+                    <p class="mb-0">Successful compilations: ${task.successfulCompilations || 0}/${task.tasksCount || 0}</p>
+                    ${task.run ? `<p class="mb-0">Successful runs: ${task.successfulRuns || 0}/${task.tasksCount || 0}</p>` : ''}
                     ${task.dateOfCompletion ? `<p class="mb-0">Completed: ${Utils.formatDate(task.dateOfCompletion)}</p>` : ''}
                     <hr>
                     <a href="tasks.html" class="btn btn-sm btn-primary">
