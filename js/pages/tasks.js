@@ -8,53 +8,26 @@ const tasksPage = {
 
     // Helper to determine task status from available data
     getTaskStatus: function (task, fromList = false) {
-        // If we're in the list view and have isCompleted, use it
-        if (fromList && task.hasOwnProperty('isCompleted')) {
-            if (task.isCompleted) {
-                return {
-                    text: 'Completed',
-                    class: 'success',
-                    icon: 'fa-check-circle'
-                };
-            } else {
-                return {
-                    text: 'In Progress',
-                    class: 'warning',
-                    icon: 'fa-spinner fa-pulse'
-                };
-            }
-        }
-
-        // For details view or when isCompleted isn't available, use dates
-        if (task.dateOfCompletion) {
-            return {
-                text: 'Completed',
-                class: 'success',
-                icon: 'fa-check-circle'
-            };
-        }
-
-        if (task.dateOfStart) {
-            return {
-                text: 'In Progress',
-                class: 'warning',
-                icon: 'fa-spinner fa-pulse'
-            };
-        }
-
-        if (task.dateOfCreation) {
-            return {
-                text: 'Pending',
-                class: 'secondary',
-                icon: 'fa-clock'
-            };
-        }
-
-        return {
-            text: 'Unknown',
-            class: 'secondary',
-            icon: 'fa-question-circle'
-        };
+        return [{
+            text: "Created",
+            class: "secondary",
+            icon: "fa-clock"
+        },
+        {
+            text: "In Progress",
+            class: "warning",
+            icon: "fa-spinner fa-pulse"
+        },
+        {
+            text: "Completed",
+            class: "success",
+            icon: "fa-check-circle"
+        },
+        {
+            text: "Stopped",
+            class: "danger",
+            icon: "fa-stop"
+        }][task.status]
     },
 
     loadTasks: async function () {
@@ -142,6 +115,14 @@ const tasksPage = {
         const detailsDiv = document.getElementById('taskDetails');
         if (!detailsDiv) return;
 
+        if (this.currentTaskId === null) {
+            detailsDiv.innerHTML = `
+                        <p class="text-muted text-center py-4">
+                            <i class="fas fa-arrow-left me-2"></i>Select a task to view details
+                        </p>`;
+            return;
+        }
+
         detailsDiv.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div> Loading...</div>';
 
         try {
@@ -151,6 +132,14 @@ const tasksPage = {
             // Use fromList=false for details view (use dates)
             const status = this.getTaskStatus(task, false);
 
+            const stopButton = task.status == 1 ? `<button class="btn btn-sm btn-outline-danger" onclick="tasksPage.stopTask('${task.id}')" title="Stop this task">
+                            <i class="fas fa-stop me-1"></i>Stop
+                        </button>` : ``
+
+            const deleteButton = task.status != 1 ? `<button class="btn btn-sm btn-outline-danger" onclick="tasksPage.deleteTask('${task.id}')" title="Delete this task">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </button>` : ``
+
             let html = `
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="text-primary mb-0">Task Information</h6>
@@ -158,12 +147,14 @@ const tasksPage = {
                         <button class="btn btn-sm btn-outline-success me-2" onclick="tasksPage.exportTask('${task.id}')" title="Export task">
                             <i class="fas fa-download me-1"></i>Export
                         </button>
-                        <button class="btn btn-sm btn-outline-primary" onclick="tasksPage.refreshCurrentTask()" title="Refresh this task">
+                        <button class="btn btn-sm btn-outline-primary me-2" onclick="tasksPage.refreshCurrentTask()" title="Refresh this task">
                             <i class="fas fa-sync-alt me-1"></i>Refresh
                         </button>
-                        <button class="btn btn-sm btn-outline-primary" onclick="tasksPage.cloneTask('${task.id}')" title="Clone this task">
+                        <button class="btn btn-sm btn-outline-primary me-2" onclick="tasksPage.cloneTask('${task.id}')" title="Clone this task">
                             <i class="fas fa-copy me-1"></i>Clone
                         </button>
+                        ${stopButton}
+                        ${deleteButton}
                     </div>
                 </div>
                 <p><strong>ID:</strong> ${task.id}</p>
@@ -343,7 +334,28 @@ const tasksPage = {
         } catch (error) {
             Utils.error('Failed to clone task:', error);
         }
-    }
+    },
+
+    stopTask: async function (id) {
+        try {
+            const response = await ApiService.put(`/api/compilerTasks/${id}/stop`, {});
+            this.loadTasks();
+            this.showTaskDetails(this.currentTaskId);
+        } catch (error) {
+            Utils.error('Failed to clone task:', error);
+        }
+    },
+
+    deleteTask: async function (id) {
+        try {
+            const response = await ApiService.delete(`/api/compilerTasks/${id}`, {});
+            this.currentTaskId = null;
+            this.loadTasks();
+            this.showTaskDetails(this.currentTaskId);
+        } catch (error) {
+            Utils.error('Failed to clone task:', error);
+        }
+    },
 };
 
 // Initialize on page load
