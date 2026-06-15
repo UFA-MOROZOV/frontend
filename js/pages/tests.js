@@ -31,14 +31,14 @@ const testsPage = {
     },
     
     checkUrlForNavigation: function() {
-        Utils.log('🔍 Checking URL for navigation...');
+        Utils.log('Checking URL for navigation...');
         
         // Get folder from URL
         const urlParams = new URLSearchParams(window.location.search);
         const folderId = urlParams.get('folder');
         
         if (folderId) {
-            Utils.log('✅ Found folder in URL:', folderId);
+            Utils.log('Found folder in URL:', folderId);
             
             // Clear any existing state
             TestsCommon.currentParentId = null;
@@ -51,7 +51,7 @@ const testsPage = {
             return true;
         }
         
-        Utils.log('❌ No folder in URL, checking session storage...');
+        Utils.log('No folder in URL, checking session storage...');
         
         // Then check session storage (for back navigation from other pages)
         const navigateToTests = sessionStorage.getItem('navigateToTests');
@@ -87,7 +87,7 @@ const testsPage = {
     },
     
     loadTests: async function(parentId = null) {
-        Utils.log('🚀 Loading tests with parentId:', parentId);
+        Utils.log('Loading tests with parentId:', parentId);
         
         // Update URL to reflect current folder (for refresh)
         this.updateUrlWithFolder(parentId);
@@ -113,7 +113,7 @@ const testsPage = {
         }
         // Update URL without reloading page
         window.history.replaceState({}, '', url);
-        Utils.log('📝 Updated URL with folder:', folderId);
+        Utils.log('Updated URL with folder:', folderId);
     },
     
     goToRoot: function() {
